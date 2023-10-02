@@ -1,11 +1,11 @@
 import cv2
 
-video_path = 'server/LondonBikeRideCityTour2022.mp4'
+video_path = 'videos/LondonBikeRideCityTour2022.mp4'
 cap = cv2.VideoCapture(video_path)
 
-rtsp_url = 'rtsp://localhost:554/videoTeste.mp4'  
+rtmp_url = 'rtmp://localhost:1935/'  
 fourcc = cv2.VideoWriter_fourcc(*'avc1')  # Not clear yet
-out = cv2.VideoWriter(rtsp_url, fourcc, 30, (480, 480))  
+out = cv2.VideoWriter(rtmp_url, fourcc, 30, (480, 480))  
 
 
 while True:
@@ -14,13 +14,13 @@ while True:
     if not ret:
         break
 
-    out.write(frame)  # Transmite o frame para o servidor RTSP
+    out.write(frame)  # Transmite o frame para o servidor RTMP
 
-    cv2.imshow('Video', frame)  # Exibe o vídeo localmente
+    # cv2.imshow('Video', frame)  # Exibe o vídeo localmente
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
 cap.release()
 out.release()
-cv2.destroyAllWindows()
+# cv2.destroyAllWindows()
