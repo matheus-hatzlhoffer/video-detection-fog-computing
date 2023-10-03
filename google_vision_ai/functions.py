@@ -3,6 +3,7 @@ from collections import namedtuple
 from PIL import Image, ImageDraw, ImageFont
 from google.cloud import vision
 from google_vision_ai import prepare_image_local, VisionAI
+import time
 
 def draw_multiple_boundary_normalized(image_file, list):
     font = ImageFont.truetype('c:\WINDOWS\Fonts\ARIAL.TTF', size=35)
@@ -19,6 +20,7 @@ def draw_multiple_boundary_normalized(image_file, list):
 def get_images_analisis(image_list):
     client = vision.ImageAnnotatorClient()
     for image_relative_path in image_list:
+        start_time = time.time()
         image = prepare_image_local(image_relative_path)
 
         va = VisionAI(client, image)
@@ -37,3 +39,7 @@ def get_images_analisis(image_list):
         else:
             pil_image = Image.open(image_relative_path)
             pil_image.show()
+        end_time = time.time()
+        # Calculate elapsed time
+        elapsed_time = end_time - start_time
+        print("Elapsed time: ", elapsed_time) 
