@@ -2,7 +2,7 @@ import socket, cv2, pickle, struct
 import imutils
 import cv2
 
-server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 host_name = socket.gethostname()
 host_ip = "127.0.0.1"
 
@@ -15,7 +15,7 @@ print('Listening at:', socket_address)
 
 def start_video_stream():
     client_socket, addr = server_socket.accept()
-    camera = True
+    camera = False
     if camera == True:
         vid = cv2.VideoCapture(0)
     else:

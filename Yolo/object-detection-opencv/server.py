@@ -1,14 +1,15 @@
 import socket, cv2, pickle, struct
 import threading
-# import yolo_opencv
+import yolo_opencv
 
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 host_name = socket.gethostname()
 # host_ip = socket.gethostbyname(host_name)
-host_ip = "127.0.0.1"
+host_ip = "10.3.77.117"
 print('HOST IP:', host_ip)
-port = 9998
+port = 9997
 socket_address = (host_ip, port)
+server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 server_socket.bind(socket_address)
 server_socket.listen()
 print('Listening at:', socket_address)
@@ -18,8 +19,8 @@ frame = None
 
 def start_video_stream():
     global frame
-    camera_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    host_ip = "127.0.0.1"
+    camera_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    host_ip = "10.3.77.133"
     port = 9999
     camera_socket.connect((host_ip, port))
     data = b""
@@ -38,14 +39,6 @@ def start_video_stream():
         frame_data = data[:msg_size]
         data = data[msg_size:]
         frame = pickle.loads(frame_data)
-
-        # frame = yolo_opencv.image_analyzer(frame)
-
-        cv2.imshow ("RECIEVING VIDEO", frame)
-        key = cv2.waitKey(1) & 0xFF
-        # print(data)
-        if key == ord('q'):
-            break
     camera_socket.close()
     
 thread = threading.Thread(target=start_video_stream, args=())
@@ -57,9 +50,12 @@ def serve_client(addr, client_socket):
         print("Client {} CONNECTED".format(addr))
         if client_socket:
             while True:
-                a = pickle.dumps(frame)
+
+                frameClient = yolo_opencv.image_analyzer(frame)
+                a = pickle.dumps(frameClient)
                 message = struct.pack("Q", len(a))+a
                 client_socket.sendall(message)
+
     except Exception as e:
         print(f"Client {addr} disconnected")
         pass
@@ -69,4 +65,4 @@ while True:
     print(addr)
     thread = threading.Thread(target=serve_client, args=(addr, client_socket))
     thread.start()
-    print("Total clients ", threading.activeCount()-1)
+    print("Total clients ", threading.activeCount()-2)

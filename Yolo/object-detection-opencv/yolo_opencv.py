@@ -14,7 +14,7 @@ import time
 
 
 def image_analyzer(image):
-    start_time = time.time()
+    # start_time = time.time()
     categorias = "yolov3.txt"
     pesos = "yolov3.weights"
     config = "yolov3.cfg"
@@ -78,8 +78,8 @@ def image_analyzer(image):
         h = box[3]
         draw_prediction(image, class_ids[i], confidences[i], round(x), round(y), round(x+w), round(y+h), classes, COLORS)
     
-    end_time = time.time()
-    print("Tempo decorrido:", end_time-start_time)
+    # end_time = time.time()
+    # print("Tempo decorrido:", end_time-start_time)
     return image
     # cv2.imshow("object detection", image)
     # cv2.waitKey()
