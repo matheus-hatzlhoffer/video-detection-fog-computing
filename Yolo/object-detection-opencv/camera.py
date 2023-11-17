@@ -2,9 +2,9 @@ import socket, cv2, pickle, struct
 import imutils
 import cv2
 
-server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 host_name = socket.gethostname()
-host_ip = "127.0.0.1"
+host_ip = "127.0.1.1"
 
 print('HOST IP:', host_ip)
 port = 9999

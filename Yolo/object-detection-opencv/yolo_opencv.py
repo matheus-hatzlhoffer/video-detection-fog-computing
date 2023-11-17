@@ -40,6 +40,8 @@ def image_analyzer(image):
 
     net = cv2.dnn.readNet(pesos, config)
 
+    net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
+    net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
     blob = cv2.dnn.blobFromImage(image, scale, (416,416), (0,0,0), True, crop=False)
 
     net.setInput(blob)
