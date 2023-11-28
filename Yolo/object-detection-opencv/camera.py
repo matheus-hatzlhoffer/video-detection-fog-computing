@@ -5,8 +5,8 @@ import struct
 import imutils
 
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-host_ip = "127.0.1.1"
-port = 9997
+host_ip = "127.0.0.1"
+port = 9999
 socket_address = (host_ip, port)
 
 def start_video_stream():
