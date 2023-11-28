@@ -28,32 +28,37 @@ def start_video_stream():
     camera_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     camera_socket.bind(camera_address)
     camera_socket.listen()
-    client_2_socket, addr = camera_socket.accept()
-    print("Client {} CONNECTED".format(addr))
+    while(True):
+        client_2_socket, addr = camera_socket.accept()
+        try:
+            print("Client {} CONNECTED".format(addr))
 
-    data = b""
-    payload_size = struct.calcsize("Q")
-    while True:
-        while len(data) < payload_size:
-            packet = client_2_socket.recv(4*1024)
-            if not packet: break
-            data+=packet
-        packet_msg_size = data[:payload_size]
-        data = data[payload_size:]
-        msg_size = struct.unpack("Q", packet_msg_size)[0]
+            data = b""
+            payload_size = struct.calcsize("Q")
+            while True:
+                while len(data) < payload_size:
+                    packet = client_2_socket.recv(4*1024)
+                    if not packet: break
+                    data+=packet
+                packet_msg_size = data[:payload_size]
+                data = data[payload_size:]
+                msg_size = struct.unpack("Q", packet_msg_size)[0]
 
-        while len(data) < msg_size:
-            data+= client_2_socket.recv(4*1024)
-        frame_data = data[:msg_size]
-        data = data[msg_size:]
-        frame = pickle.loads(frame_data)
-        # frame = yolo_opencv.image_analyzer(frame)
-        # cv2.imshow("RECIEVING VIDEO", frame)
-        # key = cv2.waitkey(1) & 0xFF
-        # if key == ord('q'):
-        #     break
+                while len(data) < msg_size:
+                    data+= client_2_socket.recv(4*1024)
+                frame_data = data[:msg_size]
+                data = data[msg_size:]
+                frame = pickle.loads(frame_data)
+                # frame = yolo_opencv.image_analyzer(frame)
+                # cv2.imshow("RECIEVING VIDEO", frame)
+                # key = cv2.waitkey(1) & 0xFF
+                # if key == ord('q'):
+                #     break
 
-    camera_socket.close()
+            camera_socket.close()
+        except Exception as e:
+            print(f"Client {addr} disconnected")
+            pass
 
 
 thread = threading.Thread(target=start_video_stream, args=())
