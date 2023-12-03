@@ -2,42 +2,28 @@ import socket, cv2, pickle, struct
 import threading
 import yolo_opencv
 
-server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-host_name = socket.gethostname()
-host_ip = socket.gethostbyname(host_name)
-# host_ip = "10.3.77.117"
-# print('HOST IP:', host_ip)
-host_ip = "127.0.0.1"
-port = 9997
-socket_address = (host_ip, port)
-server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-server_socket.bind(socket_address)
-server_socket.listen()
-print('Listening at:', socket_address)
-
-global frame
-frame = None
-
 def start_video_stream():
+    print("Iniciando Camera listen port")
     global frame
     camera_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     # camera_socket.connect((host_ip, port))
     host_ip = "127.0.0.1"
-    port = 9999
+    port = 9997
     camera_address = (host_ip, port)
     camera_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     camera_socket.bind(camera_address)
     camera_socket.listen()
+    print('Server listen to Camera - Listening at:', camera_address)
     while(True):
-        client_2_socket, addr = camera_socket.accept()
+        camera_2_socket, addr = camera_socket.accept()
         try:
-            print("Client {} CONNECTED".format(addr))
+            print("Camera {} CONNECTED".format(addr))
 
             data = b""
             payload_size = struct.calcsize("Q")
             while True:
                 while len(data) < payload_size:
-                    packet = client_2_socket.recv(4*1024)
+                    packet = camera_2_socket.recv(4*1024)
                     if not packet: break
                     data+=packet
                 packet_msg_size = data[:payload_size]
@@ -45,7 +31,7 @@ def start_video_stream():
                 msg_size = struct.unpack("Q", packet_msg_size)[0]
 
                 while len(data) < msg_size:
-                    data+= client_2_socket.recv(4*1024)
+                    data+= camera_2_socket.recv(4*1024)
                 frame_data = data[:msg_size]
                 data = data[msg_size:]
                 frame = pickle.loads(frame_data)
@@ -54,35 +40,47 @@ def start_video_stream():
                 # key = cv2.waitkey(1) & 0xFF
                 # if key == ord('q'):
                 #     break
-
+        except Exception as e:
+            print(f"Camera {addr} disconnected")
+            pass
+        finally:
             camera_socket.close()
+
+def serve_client():
+    print("Iniciando Client listen port")
+    global frame
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    # camera_socket.connect((host_ip, port))
+    host_ip = "127.0.0.1"
+    port = 9999
+    client_address = (host_ip, port)
+    client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    client_socket.bind(client_address)
+    client_socket.listen()
+    print('Server listen to Client - Listening at:', client_address)
+    while(True):
+        client_2_socket, addr = client_socket.accept()
+        try:
+            print("Client {} CONNECTED".format(addr))
+            if client_socket:
+                while True:
+                    frameClient = yolo_opencv.image_analyzer(frame)
+                    # frameClient = frame
+                    a = pickle.dumps(frameClient)
+                    message = struct.pack("Q", len(a))+a
+                    client_socket.sendall(message)
+
         except Exception as e:
             print(f"Client {addr} disconnected")
             pass
+        finally:
+            client_socket.close()
 
+global frame
+frame = None
 
+print("Iniciando Server")
 thread = threading.Thread(target=start_video_stream, args=())
 thread.start()
-
-def serve_client(addr, client_socket):
-    global frame
-    try:
-        print("Client {} CONNECTED".format(addr))
-        if client_socket:
-            while True:
-                frameClient = yolo_opencv.image_analyzer(frame)
-                # frameClient = frame
-                a = pickle.dumps(frameClient)
-                message = struct.pack("Q", len(a))+a
-                client_socket.sendall(message)
-
-    except Exception as e:
-        print(f"Client {addr} disconnected")
-        pass
-
-while True:
-    client_socket, addr = server_socket.accept()
-    print(addr)
-    thread = threading.Thread(target=serve_client, args=(addr, client_socket))
-    thread.start()
-    print("Total clients ", threading.activeCount()-2)
+thread = threading.Thread(target=serve_client, args=())
+thread.start()
