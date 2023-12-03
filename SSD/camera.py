@@ -1,8 +1,10 @@
 import socket, cv2, pickle, struct
 import imutils
 import cv2
+import time
 
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 host_name = socket.gethostname()
 host_ip = "127.0.1.1"
 
@@ -25,7 +27,7 @@ def start_video_stream():
         if client_socket:
             while(vid.isOpened()):
                 img, frame = vid.read()
-
+                time.sleep(0.02)
                 frame = imutils.resize(frame, width=320)
                 a = pickle.dumps(frame)
                 message = struct.pack("Q", len(a))+a
