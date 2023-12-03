@@ -1,4 +1,4 @@
-import socket, cv2, pickle, struct
+import socket, cv2, pickle, struct, errno
 import threading
 import yolo_opencv
 import traceback
@@ -70,6 +70,13 @@ def serve_client():
                     a = pickle.dumps(frameClient)
                     message = struct.pack("Q", len(a))+a
                     client_socket.sendall(message)
+        except IOError as e:
+            if e.errno == errno.EPIPE:
+                print(f"EPIPE {addr} disconnected")
+                traceback.print_exc()
+            else:
+                print(f"Else {addr} disconnected")
+                traceback.print_exc()
 
         except Exception as e:
             print(f"Client {addr} disconnected")
