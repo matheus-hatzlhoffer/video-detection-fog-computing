@@ -1,6 +1,7 @@
 import socket, cv2, pickle, struct
 import threading
 import yolo_opencv
+import time
 
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 host_name = socket.gethostname()
@@ -19,33 +20,31 @@ frame = None
 
 def start_video_stream():
     global frame
-    camera_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    host_ip = "127.0.1.1"
-    port = 9999
-    camera_socket.connect((host_ip, port))
-    data = b""
-    payload_size = struct.calcsize("Q")
     while True:
-        while len(data) < payload_size:
-            packet = camera_socket.recv(4*1024)
-            if not packet: break
-            data+=packet
-        packet_msg_size = data[:payload_size]
-        data = data[payload_size:]
-        msg_size = struct.unpack("Q", packet_msg_size)[0]
+        camera_socket, camera_addr = server_socket.accept()
 
-        while len(data) < msg_size:
-            data+= camera_socket.recv(4*1024)
-        frame_data = data[:msg_size]
-        data = data[msg_size:]
-        frame = pickle.loads(frame_data)
-        # frame = yolo_opencv.image_analyzer(frame)
-        # cv2.imshow("RECIEVING VIDEO", frame)
-        # key = cv2.waitkey(1) & 0xFF
-        # if key == ord('q'):
-        #     break
+        data = b""
+        payload_size = struct.calcsize("Q")
 
-    camera_socket.close()
+        while True:
+            while len(data) < payload_size:
+                packet = camera_socket.recv(4*1024)
+                if not packet: break
+                data += packet
+
+            packet_msg_size = data[:payload_size]
+            data = data[payload_size:]
+            msg_size = struct.unpack("Q", packet_msg_size)[0]
+
+            while len(data) < msg_size:
+                data += camera_socket.recv(4*1024)
+
+            frame_data = data[:msg_size]
+            data = data[msg_size:]
+            frame = pickle.loads(frame_data)
+
+        camera_socket.close()
+
 
 
 thread = threading.Thread(target=start_video_stream, args=())
@@ -56,12 +55,22 @@ def serve_client(addr, client_socket):
     try:
         print("Client {} CONNECTED".format(addr))
         if client_socket:
+            frame_count = 0
+            start_time = time.time()    
             while True:
                 frameClient = yolo_opencv.image_analyzer(frame)
-                # frameClient = frame
                 a = pickle.dumps(frameClient)
                 message = struct.pack("Q", len(a))+a
                 client_socket.sendall(message)
+                frame_count += 1
+
+                elapsed_time = time.time() - start_time
+
+                if elapsed_time > 1:
+                    fps = frame_count / elapsed_time
+                    print(f"FPS: {fps:.2f}")                    
+                    frame_count = 0
+                    start_time = time.time()
 
     except Exception as e:
         print(f"Client {addr} disconnected")
