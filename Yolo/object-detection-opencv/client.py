@@ -1,4 +1,4 @@
-import socket, cv2, pickle, struct
+import socket, cv2, pickle, struct, traceback
 
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 host_ip = "127.0.0.1"
@@ -31,8 +31,11 @@ def receive_video_stream():
                     break
             except Exception as e:
                 print(f"Error connected: {e}")
+                traceback.print_exc()
+                break
     except Exception as e:
         print(f"Error: {e}")
+        traceback.print_exc()
     finally:
         server_socket.close()
 

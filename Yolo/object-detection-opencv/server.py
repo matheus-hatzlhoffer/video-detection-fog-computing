@@ -1,6 +1,7 @@
 import socket, cv2, pickle, struct
 import threading
 import yolo_opencv
+import traceback
 
 def start_video_stream():
     print("Iniciando Camera listen port")
@@ -42,9 +43,9 @@ def start_video_stream():
                 #     break
         except Exception as e:
             print(f"Camera {addr} disconnected")
-            pass
-        finally:
-            camera_socket.close()
+            traceback.print_exc()
+            break
+    camera_socket.close()
 
 def serve_client():
     print("Iniciando Client listen port")
@@ -72,9 +73,9 @@ def serve_client():
 
         except Exception as e:
             print(f"Client {addr} disconnected")
-            pass
-        finally:
-            client_socket.close()
+            traceback.print_exc()
+            break
+    client_socket.close()
 
 global frame
 frame = None
@@ -84,3 +85,4 @@ thread = threading.Thread(target=start_video_stream, args=())
 thread.start()
 thread = threading.Thread(target=serve_client, args=())
 thread.start()
+print("Total clients ", threading.active_count()-2)
