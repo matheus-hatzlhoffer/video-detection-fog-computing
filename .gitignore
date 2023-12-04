@@ -2,3 +2,4 @@ Yolo/object-detection-opencv/yolov3.weights
 Yolo/object-detection-opencv/LondonBikeRideCityTour2022.mp4
 SSD/LondonBikeRideCityTour2022.mp4
 SSD/saida.avi
+__pycache__/
