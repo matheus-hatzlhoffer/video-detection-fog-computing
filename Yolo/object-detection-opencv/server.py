@@ -7,7 +7,8 @@ server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 host_name = socket.gethostname()
 host_ip = socket.gethostbyname(host_name)
 # host_ip = "10.3.77.117"
-print('HOST IP:', host_ip)
+# print('HOST IP:', host_ip)
+host_ip = "127.0.0.1"
 port = 9997
 socket_address = (host_ip, port)
 server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -20,31 +21,73 @@ frame = None
 
 def start_video_stream():
     global frame
-    while True:
-        camera_socket, camera_addr = server_socket.accept()
+# <<<<<<< measuringFPS
+#     while True:
+#         camera_socket, camera_addr = server_socket.accept()
 
-        data = b""
-        payload_size = struct.calcsize("Q")
+#         data = b""
+#         payload_size = struct.calcsize("Q")
 
-        while True:
-            while len(data) < payload_size:
-                packet = camera_socket.recv(4*1024)
-                if not packet: break
-                data += packet
+#         while True:
+#             while len(data) < payload_size:
+#                 packet = camera_socket.recv(4*1024)
+#                 if not packet: break
+#                 data += packet
 
-            packet_msg_size = data[:payload_size]
-            data = data[payload_size:]
-            msg_size = struct.unpack("Q", packet_msg_size)[0]
+#             packet_msg_size = data[:payload_size]
+#             data = data[payload_size:]
+#             msg_size = struct.unpack("Q", packet_msg_size)[0]
 
-            while len(data) < msg_size:
-                data += camera_socket.recv(4*1024)
+#             while len(data) < msg_size:
+#                 data += camera_socket.recv(4*1024)
 
-            frame_data = data[:msg_size]
-            data = data[msg_size:]
-            frame = pickle.loads(frame_data)
+#             frame_data = data[:msg_size]
+#             data = data[msg_size:]
+#             frame = pickle.loads(frame_data)
 
-        camera_socket.close()
+#         camera_socket.close()
 
+# =======
+    camera_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    # camera_socket.connect((host_ip, port))
+    host_ip = "127.0.0.1"
+    port = 9999
+    camera_address = (host_ip, port)
+    camera_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    camera_socket.bind(camera_address)
+    camera_socket.listen()
+    while(True):
+        client_2_socket, addr = camera_socket.accept()
+        try:
+            print("Client {} CONNECTED".format(addr))
+
+            data = b""
+            payload_size = struct.calcsize("Q")
+            while True:
+                while len(data) < payload_size:
+                    packet = client_2_socket.recv(4*1024)
+                    if not packet: break
+                    data+=packet
+                packet_msg_size = data[:payload_size]
+                data = data[payload_size:]
+                msg_size = struct.unpack("Q", packet_msg_size)[0]
+
+                while len(data) < msg_size:
+                    data+= client_2_socket.recv(4*1024)
+                frame_data = data[:msg_size]
+                data = data[msg_size:]
+                frame = pickle.loads(frame_data)
+                # frame = yolo_opencv.image_analyzer(frame)
+                # cv2.imshow("RECIEVING VIDEO", frame)
+                # key = cv2.waitkey(1) & 0xFF
+                # if key == ord('q'):
+                #     break
+
+            camera_socket.close()
+        except Exception as e:
+            print(f"Client {addr} disconnected")
+            pass
+# >>>>>>> adjusting_camera
 
 
 thread = threading.Thread(target=start_video_stream, args=())
