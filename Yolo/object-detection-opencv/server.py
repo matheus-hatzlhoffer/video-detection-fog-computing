@@ -85,7 +85,7 @@ def start_video_stream():
 
             camera_socket.close()
         except Exception as e:
-            print(f"Client {addr} disconnected")
+            print(f"Camera {addr} disconnected")
             pass
 # >>>>>>> adjusting_camera
 

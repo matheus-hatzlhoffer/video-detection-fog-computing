@@ -32,7 +32,7 @@ def load_model():
 	COLORS = np.random.uniform(0, 255, size=(len(CLASSES), 3))  
 	prototxt = "MobileNetSSD_deploy.prototxt"
 	model = "MobileNetSSD_deploy.caffemodel"
-	use_gpu = 1
+	use_gpu = 0
 
 	# load our serialized model from disk
 	net = cv2.dnn.readNetFromCaffe(prototxt, model)
@@ -62,7 +62,7 @@ def load_model():
 	# a blob
 def consulta_SSD(frame, net, CLASSES, COLORS):
 	
-	frame = imutils.resize(frame, width=400)
+	frame = imutils.resize(frame, width=640)
 	(h, w) = frame.shape[:2]
 	blob = cv2.dnn.blobFromImage(frame, 0.007843, (300, 300), 127.5)
 	# pass the blob through the network and obtain the detections and
