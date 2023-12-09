@@ -5,7 +5,9 @@ def recieveVideo():
 
     try:
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        host_ip = "127.0.0.1"
+        # host_ip = "127.0.0.1"
+        host_ip = "192.168.0.131"
+
         port = 9997
         client_socket.connect((host_ip, port))
 

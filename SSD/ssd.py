@@ -32,7 +32,7 @@ def load_model():
 	COLORS = np.random.uniform(0, 255, size=(len(CLASSES), 3))  
 	prototxt = "MobileNetSSD_deploy.prototxt"
 	model = "MobileNetSSD_deploy.caffemodel"
-	use_gpu = 0
+	use_gpu = 1
 
 	# load our serialized model from disk
 	net = cv2.dnn.readNetFromCaffe(prototxt, model)
