@@ -15,19 +15,14 @@ def recieveVideo():
         payload_size=struct.calcsize("Q")
         while True:
             while len(data) < payload_size:
-                print('a')
                 packet = client_socket.recv(4*1024)
                 if not packet: 
-                    print('maracuja')
                     break
                 data+=packet
-                print('c')
             packed_msg_size = data[:payload_size]
             data = data[payload_size:]
-            print("d")
             msg_size = struct.unpack("Q", packed_msg_size)[0]
             while len(data ) < msg_size:
-                print('b')
                 data += client_socket.recv(4*1024)
             frame_data = data[:msg_size]
             data = data[msg_size:]
