@@ -11,7 +11,9 @@ host_ip = socket.gethostbyname(host_name)
 # host_ip = "10.3.77.117"
 # print('HOST IP:', host_ip)
 # host_ip = "127.0.0.1"
-host_ip = "192.168.0.131"
+# host_ip = "192.168.0.131"
+host_ip = "10.3.77.135"
+
 port = 9997
 socket_address = (host_ip, port)
 server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -25,7 +27,8 @@ def start_video_stream():
     global frame
     camera_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     # host_ip = "127.0.0.1"
-    host_ip = "192.168.0.131"
+    # host_ip = "192.168.0.131"
+    host_ip = "10.3.77.135"
     port = 9999
     camera_address = (host_ip, port)
 
