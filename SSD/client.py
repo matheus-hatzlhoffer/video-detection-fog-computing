@@ -17,15 +17,19 @@ def recieveVideo():
 
         data = b""
         payload_size=struct.calcsize("Q")
+        code_payload = struct.calcsize("P")
+
         while True:
             start_time = time.time()
-            while len(data) < payload_size:
+            while len(data) < payload_size+code_payload:
                 packet = client_socket.recv(4*1024)
                 if not packet: 
                     break
                 data+=packet
             packed_msg_size = data[:payload_size]
-            data = data[payload_size:]
+            code = data[payload_size:payload_size+code_payload]
+            print(struct.unpack("P", code)[0])
+            data = data[payload_size+code_payload:]
             msg_size = struct.unpack("Q", packed_msg_size)[0]
             while len(data ) < msg_size:
                 data += client_socket.recv(4*1024)

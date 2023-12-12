@@ -27,8 +27,13 @@ def start_video_stream():
     try:
         server_socket.connect(socket_address)
         print('Connected to server')
+        frame_count_fps = 0
+        start_time_2 = time.time()    
+
+
         while(vid.isOpened()):
             start_time = time.time()
+            frame_count += 1
             img, frame = vid.read()
             time.sleep(0.02)
             try:
@@ -37,17 +42,26 @@ def start_video_stream():
                 print("End of Video")
                 pass
             a = pickle.dumps(frame)
-            message = struct.pack("Q", len(a))+a
+            message = struct.pack("Q", len(a))+struct.pack("P", int(str(frame_count).zfill(12)) )+a
             server_socket.sendall(message)
-            frame_count += 1
+            frame_count_fps += 1
+            elapsed_time = time.time() - start_time_2
+
+            if elapsed_time > 1:
+                fps = frame_count_fps / elapsed_time
+                print(f"FPS: {fps:.2f}")                    
+                frame_count_fps = 0
+                start_time_2 = time.time()
+
             end_time = time.time()
-            f.write(str("Frame: "+str(frame_count)+" Time: "+str(end_time-start_time)+" bitrate: "+str(len(message)/(end_time-start_time))+" frametime: "+str(time.time())+"\n"))
+            f.write(str("Frame: "+str(frame_count)+" Code "+str(frame_count).zfill(12)+" Time: "+str(end_time-start_time)+" bitrate: "+str(len(message)/(end_time-start_time))+" frametime: "+str(time.time())+"\n"))
             # cv2.imshow("Transmitting to server", frame)
             # key = cv2.waitKey(1) & 0xFF
             # if key == ord('q'):
         server_socket.close()
     except Exception as e:
-        print(f"COULDN'T CONECT TO SERVER, TRYING AGAIN")
+        print(e)
+        # print(f"COULDN'T CONECT TO SERVER, TRYING AGAIN")
         pass
 
 while(True):

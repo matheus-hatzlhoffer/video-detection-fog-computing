@@ -21,10 +21,13 @@ server_socket.bind(socket_address)
 server_socket.listen()
 print('Listening at:', socket_address)
 global frame
+global frame_ID
+frame_ID = struct.pack("P",0)
 frame = None
 
 def start_video_stream():
     global frame
+    global frame_ID
     camera_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     # host_ip = "127.0.0.1"
     # host_ip = "192.168.0.131"
@@ -43,15 +46,16 @@ def start_video_stream():
 
             data = b""
             payload_size = struct.calcsize("Q")
+            code_payload = struct.calcsize("P")
             while True:
-                while len(data) < payload_size:
+                while len(data) < payload_size+code_payload:
                     packet = camera_2_socket.recv(4*1024)
                     if not packet: break
                     data+=packet
                 packet_msg_size = data[:payload_size]
-                data = data[payload_size:]
+                frame_ID = data[payload_size:payload_size+code_payload]
+                data = data[payload_size+code_payload:]
                 msg_size = struct.unpack("Q", packet_msg_size)[0]
-
                 while len(data) < msg_size:
                     data+= camera_2_socket.recv(4*1024)
                 frame_data = data[:msg_size]
@@ -67,13 +71,17 @@ def start_video_stream():
             camera_2_socket.close()
         except Exception as e:
             print(f"Camera {addr} disconnected")
+            frame_ID = struct.pack("P",0)
+
             pass
 
 thread = threading.Thread(target=start_video_stream, args=())
 thread.start()
 
 def serve_client(addr, client_socket):
+    last_frame = struct.pack("P",0)
     global frame
+    global frame_ID
     net, CLASSES, COLORS = ssd.load_model()
     try:
         print("Client {} CONNECTED".format(addr))
@@ -81,23 +89,24 @@ def serve_client(addr, client_socket):
             frame_count = 0
             start_time = time.time()    
             while True:
-                try:
-                    frameClient = ssd.consulta_SSD(frame, net, CLASSES, COLORS)
-                except Exception as ex:
-                    frameClient = np.zeros(shape=[360, 640, 3], dtype=np.uint8) 
-                a = pickle.dumps(frameClient)
-                message = struct.pack("Q", len(a))+a
-                client_socket.sendall(message)
-                frame_count += 1
+                if last_frame != frame_ID:
+                    try:
+                        frameClient = ssd.consulta_SSD(frame, net, CLASSES, COLORS)
+                    except Exception as ex:
+                        frameClient = np.zeros(shape=[360, 640, 3], dtype=np.uint8) 
+                    a = pickle.dumps(frameClient)
+                    message = struct.pack("Q", len(a))+frame_ID+a
+                    client_socket.sendall(message)
+                    frame_count += 1
 
-                elapsed_time = time.time() - start_time
+                    elapsed_time = time.time() - start_time
 
-                if elapsed_time > 1:
-                    fps = frame_count / elapsed_time
-                    print(f"FPS: {fps:.2f}")                    
-                    frame_count = 0
-                    start_time = time.time()
-
+                    if elapsed_time > 1:
+                        fps = frame_count / elapsed_time
+                        print(f"FPS: {fps:.2f}")                    
+                        frame_count = 0
+                        start_time = time.time()
+                    # last_frame = frame_ID
     except Exception as e:
         print(e)
         print(f"Client {addr} disconnected")
