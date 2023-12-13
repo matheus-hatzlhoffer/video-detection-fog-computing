@@ -72,7 +72,7 @@ def start_video_stream():
                 frame_count += 1
 
                 end_time = time.time()
-                f.write(str("Frame,"+str(frame_count)+",Code,"+str(struct.unpack("P", frame_ID)[0]).zfill(12)+",Time,"+str(end_time-start_time)+",bitrate,"+str(packet_msg_size+msg_size)/(end_time-start_time))+",frametime,"+str(time.time())+"\n"))
+                f.write(str("Frame,"+str(frame_count)+",Code,"+str(struct.unpack("P", frame_ID)[0]).zfill(12)+",Time,"+str(end_time-start_time)+",bitrate,"+str((msg_size)/(end_time-start_time))+",frametime,"+str(time.time())+"\n"))
 
                 # frame = ssd.consulta_SSD(frame, net, CLASSES, COLORS)
                 # frame = yolo_opencv.image_analyzer(frame)
@@ -83,6 +83,7 @@ def start_video_stream():
 
             camera_2_socket.close()
         except Exception as e:
+            # print(e)
             print(f"Camera {addr} disconnected")
             frame_ID = struct.pack("P",0)
 
@@ -101,6 +102,7 @@ def serve_client(addr, client_socket):
         if client_socket:
             frame_count_fps = 0
             frame_count = 0
+            fps = 0
 
             start_time_2 = time.time()    
             while True:
@@ -126,7 +128,7 @@ def serve_client(addr, client_socket):
                     last_frame = frame_ID
 
                     end_time = time.time()
-                    g.write(str("Frame,"+str(frame_count)+",Code,"+str(struct.unpack("P", frame_ID)[0]).zfill(12)+",Time,"+str(end_time-start_time)+",bitrate,"+str(len(message)/(end_time-start_time))+",frametime,"+str(time.time())+"\n"))
+                    g.write(str("FPS,"+str(fps)+",Frame,"+str(frame_count)+",Code,"+str(struct.unpack("P", frame_ID)[0]).zfill(12)+",Time,"+str(end_time-start_time)+",bitrate,"+str(len(message)/(end_time-start_time))+",frametime,"+str(time.time())+"\n"))
             
     except Exception as e:
         print(e)
