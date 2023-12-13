@@ -35,7 +35,7 @@ def start_video_stream():
             start_time = time.time()
             frame_count += 1
             img, frame = vid.read()
-            time.sleep(0.02)
+            # time.sleep(0.02)
             try:
                 frame = imutils.resize(frame, width=240)
             except Exception as ex:

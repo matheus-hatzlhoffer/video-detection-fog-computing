@@ -5,6 +5,10 @@ import ssd
 import time
 import numpy as np
 
+f = open("logfile_server_recieve.csv", "w")
+g = open("logfile_server_send.csv", "w")
+
+
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 host_name = socket.gethostname()
 host_ip = socket.gethostbyname(host_name)
@@ -35,6 +39,7 @@ def start_video_stream():
     port = 9999
     camera_address = (host_ip, port)
 
+
     camera_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     camera_socket.bind(camera_address)
     camera_socket.listen()
@@ -43,11 +48,14 @@ def start_video_stream():
         camera_2_socket, addr = camera_socket.accept()
         try:
             print("Camera {} CONNECTED".format(addr))
-
+            frame_count = 0
+            
             data = b""
             payload_size = struct.calcsize("Q")
             code_payload = struct.calcsize("P")
             while True:
+                start_time = time.time()
+
                 while len(data) < payload_size+code_payload:
                     packet = camera_2_socket.recv(4*1024)
                     if not packet: break
@@ -61,6 +69,11 @@ def start_video_stream():
                 frame_data = data[:msg_size]
                 data = data[msg_size:]
                 frame = pickle.loads(frame_data)
+                frame_count += 1
+
+                end_time = time.time()
+                f.write(str("Frame,"+str(frame_count)+",Code,"+str(struct.unpack("P", frame_ID)[0]).zfill(12)+",Time,"+str(end_time-start_time)+",bitrate,"+str(packet_msg_size+msg_size)/(end_time-start_time))+",frametime,"+str(time.time())+"\n"))
+
                 # frame = ssd.consulta_SSD(frame, net, CLASSES, COLORS)
                 # frame = yolo_opencv.image_analyzer(frame)
                 # cv2.imshow("RECIEVING VIDEO", frame)
@@ -86,10 +99,14 @@ def serve_client(addr, client_socket):
     try:
         print("Client {} CONNECTED".format(addr))
         if client_socket:
+            frame_count_fps = 0
             frame_count = 0
-            start_time = time.time()    
+
+            start_time_2 = time.time()    
             while True:
                 if last_frame != frame_ID:
+                    start_time = time.time()
+                    frame_count += 1
                     try:
                         frameClient = ssd.consulta_SSD(frame, net, CLASSES, COLORS)
                     except Exception as ex:
@@ -97,16 +114,20 @@ def serve_client(addr, client_socket):
                     a = pickle.dumps(frameClient)
                     message = struct.pack("Q", len(a))+frame_ID+a
                     client_socket.sendall(message)
-                    frame_count += 1
+                    frame_count_fps += 1
 
-                    elapsed_time = time.time() - start_time
+                    elapsed_time = time.time() - start_time_2
 
                     if elapsed_time > 1:
-                        fps = frame_count / elapsed_time
+                        fps = frame_count_fps / elapsed_time
                         print(f"FPS: {fps:.2f}")                    
-                        frame_count = 0
-                        start_time = time.time()
+                        frame_count_fps = 0
+                        start_time_2 = time.time()
                     last_frame = frame_ID
+
+                    end_time = time.time()
+                    g.write(str("Frame,"+str(frame_count)+",Code,"+str(struct.unpack("P", frame_ID)[0]).zfill(12)+",Time,"+str(end_time-start_time)+",bitrate,"+str(len(message)/(end_time-start_time))+",frametime,"+str(time.time())+"\n"))
+            
     except Exception as e:
         print(e)
         print(f"Client {addr} disconnected")

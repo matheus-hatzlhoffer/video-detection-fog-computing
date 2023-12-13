@@ -28,7 +28,7 @@ def recieveVideo():
                 data+=packet
             packed_msg_size = data[:payload_size]
             code = data[payload_size:payload_size+code_payload]
-            print(struct.unpack("P", code)[0])
+            # print(struct.unpack("P", code)[0])
             data = data[payload_size+code_payload:]
             msg_size = struct.unpack("Q", packed_msg_size)[0]
             while len(data ) < msg_size:
