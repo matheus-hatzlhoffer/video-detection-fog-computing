@@ -106,7 +106,7 @@ def serve_client(addr, client_socket):
                         print(f"FPS: {fps:.2f}")                    
                         frame_count = 0
                         start_time = time.time()
-                    # last_frame = frame_ID
+                    last_frame = frame_ID
     except Exception as e:
         print(e)
         print(f"Client {addr} disconnected")

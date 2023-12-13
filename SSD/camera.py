@@ -2,7 +2,7 @@ import socket, cv2, pickle, struct
 import imutils
 import cv2
 import time
-f = open("logfile_camera.txt", "w")
+f = open("logfile_camera.csv", "w")
 
 
 def start_video_stream():
@@ -40,6 +40,7 @@ def start_video_stream():
                 frame = imutils.resize(frame, width=240)
             except Exception as ex:
                 print("End of Video")
+                break
                 pass
             a = pickle.dumps(frame)
             message = struct.pack("Q", len(a))+struct.pack("P", int(str(frame_count).zfill(12)) )+a
@@ -54,7 +55,7 @@ def start_video_stream():
                 start_time_2 = time.time()
 
             end_time = time.time()
-            f.write(str("Frame: "+str(frame_count)+" Code "+str(frame_count).zfill(12)+" Time: "+str(end_time-start_time)+" bitrate: "+str(len(message)/(end_time-start_time))+" frametime: "+str(time.time())+"\n"))
+            f.write(str("Frame,"+str(frame_count)+",Code,"+str(frame_count).zfill(12)+",Time,"+str(end_time-start_time)+",bitrate,"+str(len(message)/(end_time-start_time))+",frametime,"+str(time.time())+"\n"))
             # cv2.imshow("Transmitting to server", frame)
             # key = cv2.waitKey(1) & 0xFF
             # if key == ord('q'):

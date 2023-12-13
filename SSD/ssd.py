@@ -62,7 +62,7 @@ def load_model():
 	# a blob
 def consulta_SSD(frame, net, CLASSES, COLORS):
 	
-	frame = imutils.resize(frame, width=640)
+	frame = imutils.resize(frame, width=240)
 	(h, w) = frame.shape[:2]
 	blob = cv2.dnn.blobFromImage(frame, 0.007843, (300, 300), 127.5)
 	# pass the blob through the network and obtain the detections and

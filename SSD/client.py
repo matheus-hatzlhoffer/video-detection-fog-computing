@@ -12,8 +12,8 @@ def recieveVideo():
         port = 9997
         client_socket.connect((host_ip, port))
         frame_count = 0
-
-        f = open("logfile_client.txt", "w")
+ 
+        f = open("logfile_client.csv", "w")
 
         data = b""
         payload_size=struct.calcsize("Q")
@@ -42,7 +42,7 @@ def recieveVideo():
                 break
             frame_count += 1
             end_time = time.time()
-            f.write(str("Frame: "+str(frame_count)+" Time: "+str(end_time-start_time)+" bitrate: "+str(len(data)/(end_time-start_time))+" frametime: "+str(time.time())+"\n"))
+            f.write(str("Frame,"+str(frame_count)+",Code,"+str(struct.unpack("P", code)[0]).zfill(12)+",Time,"+str(end_time-start_time)+",bitrate,"+str(len(data)/(end_time-start_time))+",frametime,"+str(time.time())+"\n"))
         client_socket.close()
     except Exception as e:
         print(e)
