@@ -26,7 +26,7 @@ server_socket.listen()
 print('Listening at:', socket_address)
 global frame
 global frame_ID
-frame_ID = struct.pack("P",0)
+frame_ID = struct.pack("P",-1)
 frame = None
 
 def start_video_stream():
@@ -85,15 +85,14 @@ def start_video_stream():
         except Exception as e:
             # print(e)
             print(f"Camera {addr} disconnected")
-            frame_ID = struct.pack("P",0)
-
+            frame_ID = struct.pack("P",-1)
             pass
 
 thread = threading.Thread(target=start_video_stream, args=())
 thread.start()
 
 def serve_client(addr, client_socket):
-    last_frame = struct.pack("P",0)
+    last_frame = struct.pack("P",-1)
     global frame
     global frame_ID
     net, CLASSES, COLORS = ssd.load_model()
