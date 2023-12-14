@@ -12,13 +12,16 @@ def recieveVideo():
         port = 9997
         client_socket.connect((host_ip, port))
         frame_count = 0
- 
+        frame_count_fps = 0
+        fps=0
+
         f = open("logfile_client.csv", "w")
+        f.write(str("FPS,Frame,Code,Time,bitrate,frametime\n"))
 
         data = b""
         payload_size=struct.calcsize("Q")
         code_payload = struct.calcsize("P")
-
+        start_time_2 = time.time()    
         while True:
             start_time = time.time()
             while len(data) < payload_size+code_payload:
@@ -41,8 +44,16 @@ def recieveVideo():
             if key == ord('q'):
                 break
             frame_count += 1
+            frame_count_fps += 1
+
+            elapsed_time = time.time() - start_time_2
+            if elapsed_time > 1:
+                fps = frame_count_fps / elapsed_time
+                print(f"FPS: {fps:.2f}")                    
+                frame_count_fps = 0
+                start_time_2 = time.time()
             end_time = time.time()
-            f.write(str("Frame,"+str(frame_count)+",Code,"+str(struct.unpack("P", code)[0]).zfill(12)+",Time,"+str(end_time-start_time)+",bitrate,"+str(len(data)/(end_time-start_time))+",frametime,"+str(time.time())+"\n"))
+            f.write(str(str(fps)+","+str(frame_count)+","+str(struct.unpack("P", code)[0]).zfill(12)+","+str(end_time-start_time)+","+str((msg_size)/(end_time-start_time))+","+str(time.time())+"\n"))
         client_socket.close()
     except Exception as e:
         print(e)

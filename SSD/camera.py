@@ -3,6 +3,8 @@ import imutils
 import cv2
 import time
 f = open("logfile_camera.csv", "w")
+f.write(str("FPS,Frame,Code,Time,bitrate,frametime\n"))
+
 
 
 def start_video_stream():
@@ -28,6 +30,7 @@ def start_video_stream():
         server_socket.connect(socket_address)
         print('Connected to server')
         frame_count_fps = 0
+        fps = 0
         start_time_2 = time.time()    
 
 
@@ -55,9 +58,9 @@ def start_video_stream():
                 start_time_2 = time.time()
 
             end_time = time.time()
-            f.write(str("Frame,"+str(frame_count)+",Code,"+str(frame_count).zfill(12)+",Time,"+str(end_time-start_time)+",bitrate,"+str(len(message)/(end_time-start_time))+",frametime,"+str(time.time())+"\n"))
-            # cv2.imshow("Transmitting to server", frame)
-            # key = cv2.waitKey(1) & 0xFF
+            f.write(str(str(fps)+","+str(frame_count)+","+str(frame_count).zfill(12)+","+str(end_time-start_time)+","+str(len(message)/(end_time-start_time))+","+str(time.time())+"\n"))
+            cv2.imshow("Transmitting to server", frame)
+            key = cv2.waitKey(1) & 0xFF
             # if key == ord('q'):
         server_socket.close()
     except Exception as e:
